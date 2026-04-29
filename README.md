@@ -1,4 +1,4 @@
-# LL784-Soli-Gesture-Recognition
+# ELL784-Soli-Gesture-Recognition
 
 # Fast Time-as-Channel LSGAN + DANN for Soli Gesture Recognition
 
