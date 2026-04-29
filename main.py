@@ -1,19 +1,16 @@
-# ================================================================
 # ELL784 / ELL7286  ─  Assignment 3
 # "Fast Time-as-Channel LSGAN + DANN for Soli Gesture Recognition"
 # Google Colab Notebook  |  IIT Delhi
-# ================================================================
 # SETUP:
 #   1. Runtime > Change runtime type > T4 GPU
 #   2. Run !pip install -q gdown seaborn h5py
 #   3. Set DATA_DIR to your extracted dataset path
 #   4. Run All
-# ================================================================
 
-# ── Cell 1 | Install ────────────────────────────────────────────
+# Cell 1 | Install 
 # !pip install -q seaborn h5py
 
-# ── Cell 2 | Imports & Config ───────────────────────────────────
+# Cell 2 | Imports & Config 
 import os, random, warnings
 import numpy as np
 import h5py
@@ -32,7 +29,7 @@ from tqdm import tqdm
 warnings.filterwarnings('ignore')
 plt.rcParams.update({'figure.dpi': 110, 'figure.facecolor': 'white'})
 
-# ── Reproducibility ─────────────────────────────────────────────
+# Reproducibility 
 SEED = 42
 random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
@@ -41,10 +38,10 @@ torch.backends.cudnn.deterministic = True
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Device: {device}")
 
-# ── Dataset path ─────────────────────────────────────────────────
+# Dataset path 
 DATA_DIR = '/content/extracted_files/dsp'   # ← change if your H5 files are elsewhere
 
-# ── Hyper-parameters ─────────────────────────────────────────────
+# Hyper-parameters 
 CFG = dict(
     num_classes     = 11,    # FIXED: Dropped redundant 12th class
     num_subjects    = 16,    # dynamic splitting will handle any number of subjects
@@ -78,14 +75,13 @@ CFG = dict(
     feat_dim        = 256,
 )
 
-# FIXED: Removed 'Air CCW'
 GESTURE_NAMES = [
     'Finger Slider', 'Finger Rub', 'Pinch Index', 'Pinch Pinky',
     'Tap/Click', 'Full Pinch', 'Push Wave', 'Pull Wave',
     'Palm Hold', 'Side Tap', 'Air CW'
 ]
 
-# ── Cell 3 | Data Loading ────────────────────────────────────────
+# Cell 3 | Data Loading 
 def load_h5_dataset(data_dir: str):
     files = sorted([f for f in os.listdir(data_dir) if f.endswith('.h5')])
     print(f"Loading {len(files)} files ...")
@@ -135,7 +131,7 @@ def load_dataset(data_dir: str):
     X = normalize_rd(X)
     return X, y, s
 
-# ── Cell 4 | Dataset Class ───────────────────────────────────────
+# Cell 4 | Dataset Class 
 class SoliDataset(Dataset):
     def __init__(self, X, y, subjects):
         self.X        = torch.from_numpy(X.astype(np.float32))
@@ -157,7 +153,7 @@ class AugWrapper(Dataset):
     def __getitem__(self, i):
         return self.td[i]
 
-# ── Cell 5 | Model Architecture ─────────────────────────────────
+# Cell 5 | Model Architecture 
 class FeatureExtractor(nn.Module):
     """
     Extracts spatial features while preserving the temporal dimension.
@@ -304,12 +300,12 @@ class FastSequenceDiscriminator(nn.Module):
         inp  = torch.cat([x, lmap], dim=1) # (B, 41, 32, 32)
         return self.net(inp)
 
-# ── Cell 6 | Loss & Schedule ─────────────────────────────────────
+# Cell 6 | Loss & Schedule 
 def dann_schedule(epoch, total, gamma=10.0):
     p = epoch / total
     return 2.0 / (1.0 + np.exp(-gamma * p)) - 1.0
 
-# ── Cell 7 | Fast LSGAN Training ─────────────────────────────────
+# Cell 7 | Fast LSGAN Training 
 def train_lsgan(G, D_gan, dataloader, cfg, device):
     opt_G = torch.optim.Adam(G.parameters(),     lr=cfg['lr_G'], betas=cfg['betas'])
     opt_D = torch.optim.Adam(D_gan.parameters(), lr=cfg['lr_D'], betas=cfg['betas'])
@@ -352,7 +348,7 @@ def train_lsgan(G, D_gan, dataloader, cfg, device):
 
     return G, g_losses, d_losses
 
-# ── Cell 8 | Augment Fine-grained Classes ───────────────────────
+# Cell 8 | Augment Fine-grained Classes 
 @torch.no_grad()
 def generate_augmented_sequences(G, fine_grained_classes, n_aug, cfg, device):
     G.eval()
@@ -373,7 +369,7 @@ def generate_augmented_sequences(G, fine_grained_classes, n_aug, cfg, device):
     print(f"  Generated {len(aug_y)} synthetic sequences for classes {fine_grained_classes}")
     return aug_X, aug_y, aug_s
 
-# ── Cell 9 | DANN Training ───────────────────────────────────────
+# Cell 9 | DANN Training 
 def train_main_model(F_ext, clf, dom_clf, train_dl, cfg, device):
     params = (list(F_ext.parameters()) +
               list(clf.parameters()) +
@@ -423,7 +419,7 @@ def train_main_model(F_ext, clf, dom_clf, train_dl, cfg, device):
 
     return F_ext, clf, train_losses
 
-# ── Cell 10 | Evaluation ─────────────────────────────────────────
+# Cell 10 | Evaluation 
 @torch.no_grad()
 def evaluate(F_ext, clf, loader, device):
     F_ext.eval(); clf.eval()
@@ -467,7 +463,7 @@ def plot_losses(g_losses, d_losses, train_losses, fold_id):
     axes[1].set_xlabel('Epoch'); axes[1].grid(alpha=0.3)
     plt.tight_layout(); plt.show()
 
-# ── Cell 11 | 2-Fold Cross-Validation ───────────────────────────
+# Cell 11 | 2-Fold Cross-Validation 
 def make_subject_fold_indices(subjects, fold_id):
     unique_subjects = np.unique(subjects)
     S   = len(unique_subjects)    
@@ -557,10 +553,10 @@ def run_experiment():
           f"± {np.std(results['fg_f1']):.4f}")
     return results
 
-# ── Cell 12 | RUN ────────────────────────────────────────────────
-# results = run_experiment()
+# Cell 12 | RUN 
+results = run_experiment()
 
-# ── Cell 13 | Ablation Study ─────────────────────────────────────
+# Cell 13 | Ablation Study 
 # (You can run this manually after the main loop finishes)
 def run_ablation(mode='baseline', fold=1):
     X_np, y_np, s_np = load_dataset(DATA_DIR)
@@ -607,19 +603,14 @@ def run_ablation(mode='baseline', fold=1):
                    preds [np.isin(labels, CFG['fine_grained'])],
                    average='macro')
     
-    # ---------------------------------------------------------
-    # NEW CODE: Print the detailed classification report
-    # ---------------------------------------------------------
+    # Print the detailed classification report
     gesture_names = ['Finger Slider', 'Finger Rub', 'Pinch Index', 'Pinch Pinky', 
                      'Tap/Click', 'Full Pinch', 'Push Wave', 'Pull Wave', 
                      'Palm Hold', 'Side Tap', 'Air CW']
     
-    print(f"\n======================================================")
     print(f"   Classification Report for Ablation Mode: '{mode}'  ")
-    print(f"======================================================")
     print(classification_report(labels, preds, target_names=gesture_names, zero_division=0))
     print(f"[{mode:12s}]  Overall Macro F1={ovr:.4f}   Fine-grained F1={fg:.4f}\n")
-    # ---------------------------------------------------------
 
     plot_confusion_matrix(preds, labels, fold)
 
