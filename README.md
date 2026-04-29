@@ -2,7 +2,7 @@
 
 # Fast Time-as-Channel LSGAN + DANN for Soli Gesture Recognition
 
-[![Open In Colab]([https://colab.research.google.com/assets/colab-badge.svg](https://colab.research.google.com/drive/1vmXbLK2_Q5WW1dmJ9LRYipOpD3n8g4wl?authuser=1#scrollTo=_akxFd9aj3CM))](INSERT_YOUR_COLAB_LINK_HERE)
+[[OpenInColab([https://colab.research.google.com/assets/colabbadge.svg(https://colab.research.google.com/drive/1vmXbLK2_Q5WW1dmJ9LRYipOpD3n8g4wl?authuser=1#scrollTo=_akxFd9aj3CM))]
 
 This repository contains the code for Assignment 3 (ELL784) at IIT Delhi. It implements a Fast Time-as-Channel Least Squares Generative Adversarial Network (LSGAN) combined with a Domain-Adversarial Neural Network (DANN) for fine-grained classification of Soli radar data.
 
